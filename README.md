@@ -13,6 +13,7 @@ The fetch() method requires one parameter, the URL to request, and returns a pro
 
 **Project 3:** Fetch CSV data - Zonal Annual Temperature Means (1880-Present[2021]) <br>
 -Plot the global temperature, Northern hemisphere temperature and southern hemisphere temperature temperature in degree celcius. <br>
+-Data from https://data.giss.nasa.gov/gistemp/ <br>
 -Observed that the Earth is warming over the years!! <br>
 -Learned to use Chart.js <br>
 
