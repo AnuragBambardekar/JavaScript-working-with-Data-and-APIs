@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""/>
+
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+    
+    <style>
+        #issMap { height: 400px; }
+    </style>
+
+    <title>Fetch JSON data to get ISS location</title>
+</head>
+<body>
+
+    <h1>Where is the ISS?</h1>
+
+    <p>Latitude: <span id="lat"></span>°</p>
+    <p>Longitude: <span id="lon"></span>°</p>
+    <p>altitude: <span id="altitude"></span> miles</p>
+    <div id="issMap"></div>
+
+    <script>
+        const mymap = L.map('issMap').setView([0, 0], 1);
+
+        const attribution =
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+        const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const tiles = L.tileLayer(tileUrl, { attribution });
+        tiles.addTo(mymap);
+
+        // Making a marker with a custom icon
+        const issIcon = L.icon({
+            iconUrl: 'iss200.png',
+            iconSize: [50, 32],
+            iconAnchor: [25, 16]
+        });
+        let marker = L.marker([0, 0], { icon: issIcon }).addTo(mymap);
+
+        mymap.on('zoomend', function() {
+            const zoom = mymap.getZoom() + 1;
+            const w = 50 * zoom;
+            const h = 32 * zoom;
+            issIcon.options.iconSize = [w, h];
+            issIcon.options.iconAnchor = [w / 2, h / 2];
+            mymap.removeLayer(marker);
+            let latlng = marker.getLatLng();
+            marker = L.marker([0, 0], { icon: issIcon }).addTo(mymap);
+            marker.setLatLng(latlng);
+        });
+
+        const api_url = 'https://api.wheretheiss.at/v1/satellites/25544'
+        
+        let firstTime = true;
+
+        async function getISS_Data(){
+            const response = await fetch(api_url);
+            const data = await response.json();
+            console.log(data);
+            
+            const{ latitude,longitude,altitude } = data;
+
+            document.getElementById('lat').textContent = latitude.toFixed(2);
+            document.getElementById('lon').textContent = longitude.toFixed(2);
+            document.getElementById('altitude').textContent = altitude.toFixed(2);
+
+            var dot = L.circle([latitude, longitude], {radius: 200}).addTo(mymap);
+
+            marker.setLatLng([latitude, longitude]);
+
+            //For Moving with ISS on Map
+            if (firstTime) {
+                mymap.setView([latitude, longitude], 2);
+                firstTime = false;
+            }
+        }
+
+        getISS_Data();
+        setInterval(getISS_Data, 1000);//every 1 second update the location
+    </script>
+</body>
+</html>

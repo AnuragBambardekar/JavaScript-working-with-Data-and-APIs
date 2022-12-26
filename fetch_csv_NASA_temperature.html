@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies (Land-Ocean Temperature Index, L-OTI)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <h1>Global Average Temperatures 1880-2021</h1>
+    <canvas id="chart" width="800" height="400"></canvas>
+
+    <script>
+
+
+        chartIt();
+        async function chartIt(){
+            const data = await getData(); //call getData()
+            const ctx = document.getElementById('chart').getContext('2d');
+            //Chart library of JS
+            //get the following code from Chart.JS website
+            const myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.years,
+                    datasets: [
+                        {
+                            //Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies (Land-Ocean Temperature Index, L-OTI)
+                            label: 'Global Temperature in C°',
+                            data: data.temps,
+                            backgroundColor: ['rgba(255, 99, 132, 1)'],
+                            borderColor: ['rgba(255, 99, 132, 0.5)'],
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Northern Hemisphere Temperature in C°',
+                            data: data.northern,
+                            backgroundColor: ['rgba(99, 132, 255, 1)'],
+                            borderColor: ['rgba(99, 132, 255, 0.5)'],
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Southern Hemisphere Temperature in C°',
+                            data: data.southern,
+                            backgroundColor: ['rgba(99, 255, 132, 1)'],
+                            borderColor: ['rgba(99, 255, 132, 0.5)'],
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            ticks: {
+                                // Include a dollar sign in the ticks
+                                callback: function(value, index, ticks) {
+                                    return value + '°';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+
+        
+        async function getData(){
+            //Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies (Land-Ocean Temperature Index, L-OTI)
+            //Difference from Mean Global Temp i.e. 14degree celcius
+            //the mean temperature anomaly as deviation from corresponding 1951-1980 mean
+            //The data reflect how much warmer or cooler each region was compared to a base period of 1951-1980. (The global mean surface air temperature for that period was 14°C (57°F), with an uncertainty of several tenths of a degree.)
+            
+            const response = await fetch('ZonAnn.Ts+dSST.csv');
+            const data = await response.text();
+            const years =[];
+            const temps =[];
+            const northern =[];
+            const southern =[];
+
+            const table = data.split('\n').slice(1); //split data
+
+            //split rows by column
+            table.forEach(row => {
+                const columns = row.split(',');
+                const year = columns[0];
+                const temp = columns[1];
+                const north = columns[2];
+                const south = columns[3];
+
+                years.push(year);
+                temps.push(parseFloat(temp)+14);
+                northern.push(parseFloat(north)+14);
+                southern.push(parseFloat(south)+14);
+
+                console.log(year,temp,north,south);
+            });
+            return{years,temps,northern,southern}
+        }
+    </script>
+</body>
+</html>
